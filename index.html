@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F1115">
+<meta name="description" content="Track your bets, profit and loss, offline.">
+<title>Ledger — Bet Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ledger">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 24 24" width="22" height="22" fill="none">
+          <path d="M2 15 L7 11 L11 13.5 L16 6 L22 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="9" r="2" fill="currentColor"/>
+        </svg>
+        <span>Ledger</span>
+      </div>
+      <button id="menuBtn" class="icon-btn" aria-label="Settings and backup">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+    </div>
+
+    <!-- Signature element: ledger tape of recent outcomes -->
+    <div class="ledger-tape" id="ledgerTape" aria-hidden="true">
+      <div class="ledger-tape-track" id="ledgerTapeTrack"></div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN VIEWS ===== -->
+  <main class="views">
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view active">
+
+      <div class="hero-figure">
+        <span class="hero-label">Net profit</span>
+        <span id="heroProfit" class="hero-number">€0.00</span>
+        <span id="heroSub" class="hero-sub">No bets yet</span>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Bets placed</span>
+          <span id="statTotalBets" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Win rate</span>
+          <span id="statWinRate" class="stat-value">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Wagered</span>
+          <span id="statWagered" class="stat-value">€0.00</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Returned</span>
+          <span id="statReturned" class="stat-value">€0.00</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg. profit / bet</span>
+          <span id="statAvgProfit" class="stat-value">€0.00</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Current streak</span>
+          <span id="statStreak" class="stat-value">—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Bankroll over time</h2>
+          <div class="filter-pills" id="chartRangePills">
+            <button class="pill active" data-range="all">All</button>
+            <button class="pill" data-range="month">30d</button>
+            <button class="pill" data-range="week">7d</button>
+          </div>
+        </div>
+        <div id="chartWrap" class="chart-wrap">
+          <svg id="profitChart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+          <div id="chartEmpty" class="chart-empty">Add a bet to see your curve</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Records</h2>
+        </div>
+        <div class="record-row">
+          <span>Biggest win</span>
+          <span id="recBiggestWin" class="record-value up">—</span>
+        </div>
+        <div class="record-row">
+          <span>Biggest loss</span>
+          <span id="recBiggestLoss" class="record-value down">—</span>
+        </div>
+        <div class="record-row">
+          <span>Longest win streak</span>
+          <span id="recWinStreak" class="record-value">—</span>
+        </div>
+        <div class="record-row">
+          <span>Longest losing streak</span>
+          <span id="recLossStreak" class="record-value">—</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- HISTORY -->
+    <section id="view-history" class="view">
+      <div class="history-controls">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Search notes…">
+        </div>
+        <div class="filter-pills" id="historyFilterPills">
+          <button class="pill active" data-filter="all">All</button>
+          <button class="pill" data-filter="today">Today</button>
+          <button class="pill" data-filter="week">Week</button>
+          <button class="pill" data-filter="month">Month</button>
+        </div>
+      </div>
+
+      <div id="historyList" class="history-list"></div>
+      <div id="historyEmpty" class="empty-state">
+        <p>No bets recorded yet.</p>
+        <span>Tap the + button to log your first one.</span>
+      </div>
+    </section>
+
+    <!-- STATS (secondary, deeper view reachable from dashboard on small screens too) -->
+    <section id="view-settings" class="view">
+      <div class="panel">
+        <div class="panel-head"><h2>Backup &amp; data</h2></div>
+        <p class="panel-help">Your data lives only on this device. Back it up regularly.</p>
+        <div class="settings-actions">
+          <button id="exportJsonBtn" class="btn btn-secondary">Export backup (.json)</button>
+          <label class="btn btn-secondary" for="importJsonInput">Restore backup (.json)</label>
+          <input type="file" id="importJsonInput" accept="application/json" hidden>
+          <button id="exportCsvBtn" class="btn btn-secondary">Export as CSV</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Danger zone</h2></div>
+        <button id="wipeBtn" class="btn btn-danger">Delete all data</button>
+      </div>
+
+      <div class="panel about-panel">
+        <div class="panel-head"><h2>About</h2></div>
+        <p class="panel-help">Ledger stores everything locally in IndexedDB. Nothing is sent anywhere. Install this app to your home screen for the best experience.</p>
+        <p class="panel-help version-tag">v1.0.0</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" data-view="history">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      <span>History</span>
+    </button>
+    <button class="nav-btn" data-view="settings">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- ===== FLOATING ADD BUTTON ===== -->
+  <button id="fabAdd" class="fab" aria-label="Add bet">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- ===== ADD/EDIT BET SHEET ===== -->
+  <div id="sheetOverlay" class="sheet-overlay">
+    <div id="betSheet" class="sheet">
+      <div class="sheet-handle"></div>
+      <h2 id="sheetTitle">New bet</h2>
+
+      <form id="betForm">
+        <div class="result-toggle">
+          <button type="button" class="toggle-opt win active" data-result="win">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Win
+          </button>
+          <button type="button" class="toggle-opt loss" data-result="loss">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Loss
+          </button>
+        </div>
+        <input type="hidden" id="resultInput" value="win">
+
+        <div class="field">
+          <label for="stakeInput">Amount staked (€)</label>
+          <input type="number" id="stakeInput" inputmode="decimal" step="0.01" min="0" placeholder="10.00" required>
+        </div>
+
+        <div class="field" id="returnField">
+          <label for="returnInput">Total return (€) <span class="hint">stake + winnings</span></label>
+          <input type="number" id="returnInput" inputmode="decimal" step="0.01" min="0" placeholder="19.50">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="dateInput">Date</label>
+            <input type="date" id="dateInput" required>
+          </div>
+          <div class="field profit-preview-field">
+            <label>Profit</label>
+            <div id="profitPreview" class="profit-preview">€0.00</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="notesInput">Notes <span class="hint">optional</span></label>
+          <input type="text" id="notesInput" placeholder="e.g. Arsenal vs Chelsea, over 2.5" maxlength="120">
+        </div>
+
+        <input type="hidden" id="editIdInput" value="">
+
+        <div class="sheet-actions">
+          <button type="button" id="deleteBetBtn" class="btn btn-danger hidden">Delete</button>
+          <button type="button" id="cancelSheetBtn" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save bet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+</div>
+
+<script src="db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

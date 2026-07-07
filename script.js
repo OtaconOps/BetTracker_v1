@@ -1,3 +1,0 @@
-let bets=JSON.parse(localStorage.bets||'[]');
-function render(){let p=0,w=0,r=0;t.innerHTML='<tr><th>Date</th><th>Bet</th><th>Return</th><th>P/L</th></tr>';bets.forEach(b=>{p+=b.p;w+=b.a;r+=b.r;t.innerHTML+=`<tr><td>${b.d}</td><td>${b.a}</td><td>${b.r}</td><td>${b.p}</td></tr>`});sum.innerHTML=`<h2>${p>=0?'+':''}€${p.toFixed(2)}</h2><p>Bets:${bets.length}<br>Wagered:€${w.toFixed(2)}<br>Returns:€${r.toFixed(2)}</p>`}
-function add(){let a=+amt.value,b=+ret.value;if(!a&&a!==0)return;bets.unshift({d:new Date().toLocaleDateString(),a:a,r:b,p:b-a});localStorage.bets=JSON.stringify(bets);amt.value='';ret.value='';render()}render();
